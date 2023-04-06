@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-import Load from './components/Load';
-import ReportForm from './components/Reportform';
+import {Load,ReportForm} from './components'
 
 function App() {
   const [isLoading, setIsLoading] = useState(true);
