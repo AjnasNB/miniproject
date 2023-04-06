@@ -78,4 +78,13 @@
     border-color: #0289f0;
   }
 }
+/* Media query for screens with a maximum width of 768px */
+@media screen and (max-width: 768px) {
+  .app-name {
+    font-size: 45px;
+  }
+  .powered-by {
+    font-size: 12px;
+  }
+}
 

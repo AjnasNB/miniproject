@@ -55,16 +55,18 @@ const ReportForm = () => {
       video: null
     });
   };
+ 
 
   return (
     <div className="report-form-container">
       <h1 className="report-form-heading">Suraksh</h1>
-      <form onSubmit={handleSubmit} className="report-form">
+      <form onSubmit={handleSubmit} className="report-form" id="report-form">
         <Location
           district={reportData.district}
           exciseZone={reportData.exciseZone}
           onDistrictSelect={handleDistrictSelect}
           onExciseZoneSelect={handleExciseZoneSelect}
+          
         />
         <input
           type="text"
@@ -73,6 +75,7 @@ const ReportForm = () => {
           onChange={handleInputChange}
           placeholder="Report Title"
           className="report-form-input"
+          required
         />
         <textarea
           name="description"
@@ -80,7 +83,9 @@ const ReportForm = () => {
           onChange={handleInputChange}
           placeholder="Report Description"
           className="report-form-input"
+          required
         />
+        <label className="report-form-label">Upload Photo</label>
         <input
           type="file"
           name="photo"
@@ -88,6 +93,7 @@ const ReportForm = () => {
           onChange={handlePhotoUpload}
           className="report-form-input"
         />
+        <label className="report-form-label">Upload Video</label>
         <input
           type="file"
           name="video"
@@ -99,6 +105,7 @@ const ReportForm = () => {
       </form>
     </div>
   );
+  
 };
 
 export default ReportForm;

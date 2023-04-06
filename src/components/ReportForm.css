@@ -6,8 +6,9 @@
   
   .report-form-heading {
     text-align: center;
-    font-size: 24px;
+    font-size: 28px;
     margin-bottom: 20px;
+    justify-content: center;
   }
   
   .report-form {
@@ -33,3 +34,18 @@
     cursor: pointer;
   }
   
+/* Media queries for responsiveness */
+@media screen and (max-width: 768px) {
+  .report-form-container {
+    max-width: 100%;
+    padding: 10px;
+  }
+  
+  .report-form-heading {
+    font-size: 24px;
+  }
+  
+  .report-form-input, .report-form-button {
+    font-size: 14px;
+  }
+}
