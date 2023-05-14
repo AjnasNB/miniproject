@@ -60,7 +60,7 @@ const ReportForm = () => {
   return (
     <div className="report-form-container">
       <h1 className="report-form-heading">Suraksh</h1>
-      <form onSubmit={handleSubmit} className="report-form" id="report-form">
+      <form onSubmit={handleSubmit} className="report-form" id="report-form" action="" method="POST">
         <Location
           district={reportData.district}
           exciseZone={reportData.exciseZone}
@@ -75,7 +75,7 @@ const ReportForm = () => {
           onChange={handleInputChange}
           placeholder="Report Title"
           className="report-form-input"
-          required
+          
         />
         <textarea
           name="description"
@@ -83,7 +83,7 @@ const ReportForm = () => {
           onChange={handleInputChange}
           placeholder="Report Description"
           className="report-form-input"
-          required
+          
         />
         <label className="report-form-label">Upload Photo</label>
         <input
