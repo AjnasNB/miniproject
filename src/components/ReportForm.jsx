@@ -1,111 +1,253 @@
-import React, { useState } from "react";
-import "./ReportForm.css"; // Import the CSS file for styling
-import Location from "./Location"; // Import the Location component
+import React, { useState, useEffect } from 'react';
+import Web3 from 'web3';
+import './ReportForm.css';
+
+// ABI (Application Binary Interface) of the smart contract
+const contractABI = [
+	{
+		"inputs": [],
+		"stateMutability": "nonpayable",
+		"type": "constructor"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "reportId",
+				"type": "uint256"
+			}
+		],
+		"name": "ReportSubmitted",
+		"type": "event"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "string",
+				"name": "_district",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "_exciseZone",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "_title",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "_description",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "_photoHash",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "_videoHash",
+				"type": "string"
+			}
+		],
+		"name": "submitReport",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_reportId",
+				"type": "uint256"
+			}
+		],
+		"name": "getReport",
+		"outputs": [
+			{
+				"components": [
+					{
+						"internalType": "string",
+						"name": "district",
+						"type": "string"
+					},
+					{
+						"internalType": "string",
+						"name": "exciseZone",
+						"type": "string"
+					},
+					{
+						"internalType": "string",
+						"name": "title",
+						"type": "string"
+					},
+					{
+						"internalType": "string",
+						"name": "description",
+						"type": "string"
+					},
+					{
+						"internalType": "string",
+						"name": "photoHash",
+						"type": "string"
+					},
+					{
+						"internalType": "string",
+						"name": "videoHash",
+						"type": "string"
+					},
+					{
+						"internalType": "address",
+						"name": "submitter",
+						"type": "address"
+					}
+				],
+				"internalType": "struct AnonymousReportingSystem.Report",
+				"name": "",
+				"type": "tuple"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	}
+]
+
+
+// Address of the deployed smart contract on the Ethereum network
+const contractAddress = '0x9eB689787598531eEF305b371DD8E26Ecd65BdD6';
 
 const ReportForm = () => {
-  const [reportData, setReportData] = useState({
-    district: "", // Add district field to reportData
-    exciseZone: "", // Add exciseZone field to reportData
-    title: "",
-    description: "",
-    photo: null,
-    video: null
+  const [web3, setWeb3] = useState(null);
+  const [contract, setContract] = useState(null);
+  const [accounts, setAccounts] = useState([]);
+  const [district, setDistrict] = useState('');
+  const [exciseZone, setExciseZone] = useState('');
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [photo, setPhoto] = useState(null);
+  const [video, setVideo] = useState(null);
+
+  useEffect(() => {
+    const initializeWeb3 = async () => {
+      if (window.ethereum) {
+        const web3Instance = new Web3(window.ethereum);
+        setWeb3(web3Instance);
+
+        const contractInstance = new web3Instance.eth.Contract(contractABI, contractAddress);
+        setContract(contractInstance);
+
+        try {
+          const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+          setAccounts(accounts);
+        } catch (error) {
+          console.error('Failed to connect to MetaMask:', error);
+        }
+      } else {
+        console.error('Web3 not found. Please install MetaMask to interact with the Ethereum network.');
+      }
+      // Add this code inside the useEffect hook after setting the contract instance
+
+// Listen for the ReportSubmitted event
+contract.events.ReportSubmitted((error, event) => {
+  if (error) {
+    console.error('Error processing event:', error);
+  } else {
+    // Get the reportId from the event data
+    const reportId = event.returnValues.reportId;
+    console.log('Report submitted with ID:', reportId);
+
+    // Perform any necessary actions with the submitted report
+    // You can update the UI or fetch the report details using `getReport` function
+  }
+})
+  .on('error', (error) => {
+    console.error('Error listening to event:', error);
   });
 
-  // Handle form input changes
-  const handleInputChange = (event) => {
-    const { name, value } = event.target;
-    setReportData({ ...reportData, [name]: value });
-  };
+    };
 
-  // Handle district selection
-  const handleDistrictSelect = (district) => {
-    setReportData({ ...reportData, district });
-  };
+    initializeWeb3();
+  }, []);
 
-  // Handle excise zone selection
-  const handleExciseZoneSelect = (exciseZone) => {
-    setReportData({ ...reportData, exciseZone });
-  };
-
-  // Handle photo file upload
-  const handlePhotoUpload = (event) => {
-    const file = event.target.files[0];
-    setReportData({ ...reportData, photo: file });
-  };
-
-  // Handle video file upload
-  const handleVideoUpload = (event) => {
-    const file = event.target.files[0];
-    setReportData({ ...reportData, video: file });
-  };
-
-  // Handle form submission
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
-    // Encrypt the reportData and send it to the backend
-    // using appropriate encryption and API calls
-    // Reset the form after submission
-    setReportData({
-      district: "",
-      exciseZone: "",
-      title: "",
-      description: "",
-      photo: null,
-      video: null
-    });
+
+    try {
+      // Send the transaction to the smart contract
+      const submitter = accounts[0];
+
+      // Convert photo and video files to their respective hashes (if needed)
+      const photoHash = photo ? 'hash_of_photo_file' : 'bdkchbvhfbvhckfvbjebfvhbhefnjvnefnvjnfkvbhefkebjfsnjlnjcndljjjsdcjbv';
+      const videoHash = video ? 'hash_of_video_file' : 'bhbvdwvhbwfvcnsjdnjcvnjsljkDLADHAFHHDBFHBHAVHBFHBVHBFHBVHBFHVJ CJNJV';
+
+      await contract.methods
+        .submitReport(district, exciseZone, title, description, photoHash, videoHash)
+        .send({ from: submitter });
+
+      // Clear the form fields after successful submission
+      setDistrict('');
+      setExciseZone('');
+      setTitle('');
+      setDescription('');
+      setPhoto(null);
+      setVideo(null);
+
+      // Show success message to the user
+      alert('Report submitted successfully!');
+    } catch (error) {
+      console.error('Error submitting report:', error);
+      alert('An error occurred while submitting the report. Please try again.');
+    }
   };
- 
+
+  const handlePhotoChange = (event) => {
+    const file = event.target.files[0];
+    setPhoto(file);
+  };
+
+  const handleVideoChange = (event) => {
+    const file = event.target.files[0];
+    setVideo(file);
+  };
 
   return (
-    <div className="report-form-container">
-      <h1 className="report-form-heading">Suraksh</h1>
-      <form onSubmit={handleSubmit} className="report-form" id="report-form" action="" method="POST">
-        <Location
-          district={reportData.district}
-          exciseZone={reportData.exciseZone}
-          onDistrictSelect={handleDistrictSelect}
-          onExciseZoneSelect={handleExciseZoneSelect}
-          
-        />
-        <input
-          type="text"
-          name="title"
-          value={reportData.title}
-          onChange={handleInputChange}
-          placeholder="Report Title"
-          className="report-form-input"
-          
-        />
-        <textarea
-          name="description"
-          value={reportData.description}
-          onChange={handleInputChange}
-          placeholder="Report Description"
-          className="report-form-input"
-          
-        />
-        <label className="report-form-label">Upload Photo</label>
-        <input
-          type="file"
-          name="photo"
-          accept="image/*"
-          onChange={handlePhotoUpload}
-          className="report-form-input"
-        />
-        <label className="report-form-label">Upload Video</label>
-        <input
-          type="file"
-          name="video"
-          accept="video/*"
-          onChange={handleVideoUpload}
-          className="report-form-input"
-        />
+    <form onSubmit={handleSubmit} className="report-form-container">
+      <h2 className="report-form-heading">Submit Report</h2>
+      <div className="report-form">
+        <label>
+          District:
+          <input type="text" value={district} onChange={(e) => setDistrict(e.target.value)} className="report-form-input" />
+        </label>
+        <label>
+          Excise Zone:
+          <input type="text" value={exciseZone} onChange={(e) => setExciseZone(e.target.value)} className="report-form-input" />
+        </label>
+        <label>
+          Title:
+          <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} className="report-form-input" />
+        </label>
+        <label>
+          Description:
+          <textarea value={description} onChange={(e) => setDescription(e.target.value)} className="report-form-input"></textarea>
+        </label>
+        <label>
+          Photo:
+          <input type="file" accept="image/*" onChange={handlePhotoChange} className="report-form-input" />
+        </label>
+        <label>
+          Video:
+          <input type="file" accept="video/*" onChange={handleVideoChange} className="report-form-input" />
+        </label>
         <button type="submit" className="report-form-button">Submit Report</button>
-      </form>
-    </div>
+      </div>
+    </form>
   );
-  
 };
 
 export default ReportForm;
