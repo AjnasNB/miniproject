@@ -3,7 +3,8 @@ import Web3 from 'web3';
 import './ReportForm.css';
 
 // ABI (Application Binary Interface) of the smart contract
-const contractABI = [
+const contractABI = 
+[
 	{
 		"inputs": [],
 		"stateMutability": "nonpayable",
@@ -120,7 +121,7 @@ const contractABI = [
 
 
 // Address of the deployed smart contract on the Ethereum network
-const contractAddress = '0x19010D5A178cC4bEC681888692f587dDb38A84b3';
+const contractAddress = '0xF22C5c281D44A0443638aBE1d445101cFA41809c';
 
 const ReportForm = () => {
   const [web3, setWeb3] = useState(null);
@@ -183,8 +184,8 @@ contract.events.ReportSubmitted((error, event) => {
       const submitter = accounts[0];
 
       // Convert photo and video files to their respective hashes (if needed)
-      const photoHash = photo ? 'hash_of_photo_file' : 'bdkchbvhfbvhckfvbjebfvhbhefnjvnefnvjnfkvbhefkebjfsnjlnjcndljjjsdcjbv';
-      const videoHash = video ? 'hash_of_video_file' : 'bhbvdwvhbwfvcnsjdnjcvnjsljkDLADHAFHHDBFHBHAVHBFHBVHBFHBVHBFHVJ CJNJV';
+      const photoHash = photo ? 'hash_of_photo_file' : '';
+      const videoHash = video ? 'hash_of_video_file' : '';
 
       await contract.methods
         .submitReport(district, exciseZone, title, description, photoHash, videoHash)
