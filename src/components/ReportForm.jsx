@@ -121,7 +121,7 @@ const contractABI =
 
 
 // Address of the deployed smart contract on the Ethereum network
-const contractAddress = '0xF22C5c281D44A0443638aBE1d445101cFA41809c';
+const contractAddress = '0xf18D4CAB12C4A07fe5ff2B685A1255794Bf4b077';
 
 const ReportForm = () => {
   const [web3, setWeb3] = useState(null);
