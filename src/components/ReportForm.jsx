@@ -249,6 +249,12 @@ contract.events.ReportSubmitted((error, event) => {
     initializeWeb3();
   }, []);
 
+  const encryptData = (data) => {
+    // Encrypt the data using AES algorithm
+    const encryptedData = AES.encrypt(data, process.env.KEY).toString();
+    return encryptedData;
+  };
+
   const handleSubmit = async (event) => {
     event.preventDefault();
 
@@ -261,7 +267,7 @@ contract.events.ReportSubmitted((error, event) => {
       const videoHash = video ? 'hash_of_video_file' : 'bhbvdwvhbwfvcnsjdnjcvnjsljkDLADHAFHHDBFHBHAVHBFHBVHBFHBVHBFHVJ CJNJV';
 
       await contract.methods
-        .submitReport(district, exciseZone, title, description, photoHash, videoHash)
+        .submitReport(encryptData(district), encryptData(exciseZone), encryptData(title), encryptData(description), encryptData(photoHash), encryptData(videoHash))
         .send({ from: submitter });
 
       // Clear the form fields after successful submission
