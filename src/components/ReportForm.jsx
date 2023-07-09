@@ -1,14 +1,66 @@
 import React, { useState, useEffect } from 'react';
 import Web3 from 'web3';
 import './ReportForm.css';
+import { AES } from 'crypto-js';
 
 // ABI (Application Binary Interface) of the smart contract
-const contractABI = 
-[
+const contractABI =[
 	{
 		"inputs": [],
 		"stateMutability": "nonpayable",
 		"type": "constructor"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "user",
+				"type": "address"
+			}
+		],
+		"name": "AccessGranted",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "user",
+				"type": "address"
+			}
+		],
+		"name": "AccessRevoked",
+		"type": "event"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_user",
+				"type": "address"
+			}
+		],
+		"name": "grantAccess",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "reportId",
+				"type": "uint256"
+			}
+		],
+		"name": "ReportReceived",
+		"type": "event"
 	},
 	{
 		"anonymous": false,
@@ -22,6 +74,19 @@ const contractABI =
 		],
 		"name": "ReportSubmitted",
 		"type": "event"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_user",
+				"type": "address"
+			}
+		],
+		"name": "revokeAccess",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
 	},
 	{
 		"inputs": [
@@ -102,11 +167,6 @@ const contractABI =
 						"internalType": "string",
 						"name": "videoHash",
 						"type": "string"
-					},
-					{
-						"internalType": "address",
-						"name": "submitter",
-						"type": "address"
 					}
 				],
 				"internalType": "struct AnonymousReportingSystem.Report",
@@ -116,12 +176,25 @@ const contractABI =
 		],
 		"stateMutability": "view",
 		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "getTotalContractsDeployed",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
 	}
 ]
 
 
 // Address of the deployed smart contract on the Ethereum network
-const contractAddress = '0xf18D4CAB12C4A07fe5ff2B685A1255794Bf4b077';
+const contractAddress = '0x110300ecA2B4F7204e537B9B58F3E99a3F502107';
 
 const ReportForm = () => {
   const [web3, setWeb3] = useState(null);
@@ -184,8 +257,8 @@ contract.events.ReportSubmitted((error, event) => {
       const submitter = accounts[0];
 
       // Convert photo and video files to their respective hashes (if needed)
-      const photoHash = photo ? 'hash_of_photo_file' : '';
-      const videoHash = video ? 'hash_of_video_file' : '';
+      const photoHash = photo ? 'hash_of_photo_file' : 'bdkchbvhfbvhckfvbjebfvhbhefnjvnefnvjnfkvbhefkebjfsnjlnjcndljjjsdcjbv';
+      const videoHash = video ? 'hash_of_video_file' : 'bhbvdwvhbwfvcnsjdnjcvnjsljkDLADHAFHHDBFHBHAVHBFHBVHBFHBVHBFHVJ CJNJV';
 
       await contract.methods
         .submitReport(district, exciseZone, title, description, photoHash, videoHash)

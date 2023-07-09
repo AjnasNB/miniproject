@@ -1,8 +1,12 @@
 import React, { useState, useEffect } from 'react';
-
-import {Load,ReportForm} from './components'
+import { useNavigate } from 'react-router-dom';
+import { Load, ReportForm } from './components';
+import { Routes, Route, Link } from 'react-router-dom';
+import ReportPage from './components/ReportPage';
+import ContractPage from './components/Number';
 
 function App() {
+ 
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -13,14 +17,24 @@ function App() {
     return () => clearTimeout(timer);
   }, []);
 
+  // useEffect(() => {
+  //   if (!isLoading) {
+  //     navigate('/', { replace: true });
+  //   }
+  // }, [isLoading, navigate]);
+
   return (
     <div>
       {isLoading ? (
-        <div >
-          {<Load/>}
+        <div>
+          <Load />
         </div>
       ) : (
-        <ReportForm />
+        <Routes>
+          <Route path="/" element={<ReportForm />} />
+          <Route path="/report" element={<ReportPage />} />
+          <Route  path="/total" element={<ContractPage />} />
+        </Routes>
       )}
     </div>
   );
