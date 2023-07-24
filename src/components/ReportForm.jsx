@@ -2,199 +2,15 @@ import React, { useState, useEffect } from 'react';
 import Web3 from 'web3';
 import './ReportForm.css';
 import { AES } from 'crypto-js';
+import contractABI from './Abi.json'
 
-// ABI (Application Binary Interface) of the smart contract
-const contractABI =[
-	{
-		"inputs": [],
-		"stateMutability": "nonpayable",
-		"type": "constructor"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "user",
-				"type": "address"
-			}
-		],
-		"name": "AccessGranted",
-		"type": "event"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "user",
-				"type": "address"
-			}
-		],
-		"name": "AccessRevoked",
-		"type": "event"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "_user",
-				"type": "address"
-			}
-		],
-		"name": "grantAccess",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "reportId",
-				"type": "uint256"
-			}
-		],
-		"name": "ReportReceived",
-		"type": "event"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "reportId",
-				"type": "uint256"
-			}
-		],
-		"name": "ReportSubmitted",
-		"type": "event"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "_user",
-				"type": "address"
-			}
-		],
-		"name": "revokeAccess",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "string",
-				"name": "_district",
-				"type": "string"
-			},
-			{
-				"internalType": "string",
-				"name": "_exciseZone",
-				"type": "string"
-			},
-			{
-				"internalType": "string",
-				"name": "_title",
-				"type": "string"
-			},
-			{
-				"internalType": "string",
-				"name": "_description",
-				"type": "string"
-			},
-			{
-				"internalType": "string",
-				"name": "_photoHash",
-				"type": "string"
-			},
-			{
-				"internalType": "string",
-				"name": "_videoHash",
-				"type": "string"
-			}
-		],
-		"name": "submitReport",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "_reportId",
-				"type": "uint256"
-			}
-		],
-		"name": "getReport",
-		"outputs": [
-			{
-				"components": [
-					{
-						"internalType": "string",
-						"name": "district",
-						"type": "string"
-					},
-					{
-						"internalType": "string",
-						"name": "exciseZone",
-						"type": "string"
-					},
-					{
-						"internalType": "string",
-						"name": "title",
-						"type": "string"
-					},
-					{
-						"internalType": "string",
-						"name": "description",
-						"type": "string"
-					},
-					{
-						"internalType": "string",
-						"name": "photoHash",
-						"type": "string"
-					},
-					{
-						"internalType": "string",
-						"name": "videoHash",
-						"type": "string"
-					}
-				],
-				"internalType": "struct AnonymousReportingSystem.Report",
-				"name": "",
-				"type": "tuple"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "getTotalContractsDeployed",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	}
-]
-
-
-// Address of the deployed smart contract on the Ethereum network
-const contractAddress = '0x110300ecA2B4F7204e537B9B58F3E99a3F502107';
+const encryptionKey = process.env.REACT_APP_ENCRYPTION_KEY;
+const contractAddress = process.env.REACT_APP_CONTRACT_ADDRESS;
+const districtOptions = [
+  'Alappuzha', 'Ernakulam', 'Idukki', 'Kannur', 'Kasaragod',
+  'Kollam', 'Kottayam', 'Kozhikode', 'Malappuram', 'Palakkad',
+  'Pathanamthitta', 'Thiruvananthapuram', 'Thrissur', 'Wayanad'
+];
 
 const ReportForm = () => {
   const [web3, setWeb3] = useState(null);
@@ -209,49 +25,41 @@ const ReportForm = () => {
 
   useEffect(() => {
     const initializeWeb3 = async () => {
-      if (window.ethereum) {
-        const web3Instance = new Web3(window.ethereum);
+      if (window.web3) {
+        const web3Instance = new Web3(window.web3.currentProvider);
         setWeb3(web3Instance);
 
         const contractInstance = new web3Instance.eth.Contract(contractABI, contractAddress);
         setContract(contractInstance);
 
         try {
-          const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+          const accounts = await web3Instance.eth.getAccounts();
           setAccounts(accounts);
+
+          // Add event listener for report submitted event
+          contractInstance.events.ReportSubmitted((error, event) => {
+            if (error) {
+              console.error('Error processing event:', error);
+            } else {
+              const reportId = event.returnValues.reportId;
+              console.log('Report submitted with ID:', reportId);
+              // Perform any necessary actions with the submitted report
+              // You can update the UI or fetch the report details using `getReport` function
+            }
+          });
         } catch (error) {
           console.error('Failed to connect to MetaMask:', error);
         }
       } else {
         console.error('Web3 not found. Please install MetaMask to interact with the Ethereum network.');
       }
-      // Add this code inside the useEffect hook after setting the contract instance
-
-// Listen for the ReportSubmitted event
-contract.events.ReportSubmitted((error, event) => {
-  if (error) {
-    console.error('Error processing event:', error);
-  } else {
-    // Get the reportId from the event data
-    const reportId = event.returnValues.reportId;
-    console.log('Report submitted with ID:', reportId);
-
-    // Perform any necessary actions with the submitted report
-    // You can update the UI or fetch the report details using `getReport` function
-  }
-})
-  .on('error', (error) => {
-    console.error('Error listening to event:', error);
-  });
-
     };
 
     initializeWeb3();
   }, []);
 
   const encryptData = (data) => {
-    // Encrypt the data using AES algorithm
-    const encryptedData = AES.encrypt(data, process.env.KEY).toString();
+    const encryptedData = AES.encrypt(data, encryptionKey).toString();
     return encryptedData;
   };
 
@@ -259,18 +67,22 @@ contract.events.ReportSubmitted((error, event) => {
     event.preventDefault();
 
     try {
-      // Send the transaction to the smart contract
       const submitter = accounts[0];
 
-      // Convert photo and video files to their respective hashes (if needed)
       const photoHash = photo ? 'hash_of_photo_file' : 'bdkchbvhfbvhckfvbjebfvhbhefnjvnefnvjnfkvbhefkebjfsnjlnjcndljjjsdcjbv';
       const videoHash = video ? 'hash_of_video_file' : 'bhbvdwvhbwfvcnsjdnjcvnjsljkDLADHAFHHDBFHBHAVHBFHBVHBFHBVHBFHVJ CJNJV';
 
       await contract.methods
-        .submitReport(encryptData(district), encryptData(exciseZone), encryptData(title), encryptData(description), encryptData(photoHash), encryptData(videoHash))
+        .submitReport(
+          encryptData(district),
+          encryptData(exciseZone),
+          encryptData(title),
+          encryptData(description),
+          encryptData(photoHash),
+          encryptData(videoHash)
+        )
         .send({ from: submitter });
 
-      // Clear the form fields after successful submission
       setDistrict('');
       setExciseZone('');
       setTitle('');
@@ -278,7 +90,6 @@ contract.events.ReportSubmitted((error, event) => {
       setPhoto(null);
       setVideo(null);
 
-      // Show success message to the user
       alert('Report submitted successfully!');
     } catch (error) {
       console.error('Error submitting report:', error);
@@ -298,33 +109,79 @@ contract.events.ReportSubmitted((error, event) => {
 
   return (
     <form onSubmit={handleSubmit} className="report-form-container">
-      <h2 className="report-form-heading">Submit Report</h2>
       <div className="report-form">
-        <label>
-          District:
-          <input type="text" value={district} onChange={(e) => setDistrict(e.target.value)} className="report-form-input" />
-        </label>
-        <label>
-          Excise Zone:
-          <input type="text" value={exciseZone} onChange={(e) => setExciseZone(e.target.value)} className="report-form-input" />
-        </label>
-        <label>
-          Title:
-          <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} className="report-form-input" />
-        </label>
-        <label>
-          Description:
-          <textarea value={description} onChange={(e) => setDescription(e.target.value)} className="report-form-input"></textarea>
-        </label>
-        <label>
-          Photo:
-          <input type="file" accept="image/*" onChange={handlePhotoChange} className="report-form-input" />
-        </label>
-        <label>
-          Video:
-          <input type="file" accept="video/*" onChange={handleVideoChange} className="report-form-input" />
-        </label>
-        <button type="submit" className="report-form-button">Submit Report</button>
+        <h1 className="report-form-heading">Submit Report</h1>
+        <div className="input-container">
+          <label>
+            District:
+            <select
+              value={district}
+              onChange={(e) => setDistrict(e.target.value)}
+              className="report-form-input"
+              required
+            >
+              <option value="" disabled>Select a district</option>
+              {districtOptions.map((districtName, index) => (
+                <option key={index} value={districtName}>
+                  {districtName}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Excise Zone:
+            <input
+              type="text"
+              placeholder="Enter Excise Zone"
+              value={exciseZone}
+              onChange={(e) => setExciseZone(e.target.value)}
+              className="report-form-input"
+              required
+            />
+          </label>
+          <label>
+            Title:
+            <input
+              type="text"
+              placeholder="Enter Title"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              className="report-form-input"
+              required
+            />
+          </label>
+          <label>
+            Description:
+            <textarea
+              placeholder="Enter Description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              className="report-form-input"
+              required
+            />
+          </label>
+          <label>
+            Photo:
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handlePhotoChange}
+              className="report-form-input"
+            />
+          </label>
+          <label>
+            Video:
+            <input
+              type="file"
+              accept="video/*"
+              onChange={handleVideoChange}
+              className="report-form-input"
+            />
+          </label>
+        </div>
+        <button type="submit" className="report-form-button">
+          Submit Report
+        </button>
       </div>
     </form>
   );

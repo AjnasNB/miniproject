@@ -1,207 +1,22 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import Web3 from 'web3';
-const contractAbi =[
-	{
-		"inputs": [],
-		"stateMutability": "nonpayable",
-		"type": "constructor"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "user",
-				"type": "address"
-			}
-		],
-		"name": "AccessGranted",
-		"type": "event"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "user",
-				"type": "address"
-			}
-		],
-		"name": "AccessRevoked",
-		"type": "event"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "_user",
-				"type": "address"
-			}
-		],
-		"name": "grantAccess",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "reportId",
-				"type": "uint256"
-			}
-		],
-		"name": "ReportReceived",
-		"type": "event"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "reportId",
-				"type": "uint256"
-			}
-		],
-		"name": "ReportSubmitted",
-		"type": "event"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "_user",
-				"type": "address"
-			}
-		],
-		"name": "revokeAccess",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "string",
-				"name": "_district",
-				"type": "string"
-			},
-			{
-				"internalType": "string",
-				"name": "_exciseZone",
-				"type": "string"
-			},
-			{
-				"internalType": "string",
-				"name": "_title",
-				"type": "string"
-			},
-			{
-				"internalType": "string",
-				"name": "_description",
-				"type": "string"
-			},
-			{
-				"internalType": "string",
-				"name": "_photoHash",
-				"type": "string"
-			},
-			{
-				"internalType": "string",
-				"name": "_videoHash",
-				"type": "string"
-			}
-		],
-		"name": "submitReport",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "_reportId",
-				"type": "uint256"
-			}
-		],
-		"name": "getReport",
-		"outputs": [
-			{
-				"components": [
-					{
-						"internalType": "string",
-						"name": "district",
-						"type": "string"
-					},
-					{
-						"internalType": "string",
-						"name": "exciseZone",
-						"type": "string"
-					},
-					{
-						"internalType": "string",
-						"name": "title",
-						"type": "string"
-					},
-					{
-						"internalType": "string",
-						"name": "description",
-						"type": "string"
-					},
-					{
-						"internalType": "string",
-						"name": "photoHash",
-						"type": "string"
-					},
-					{
-						"internalType": "string",
-						"name": "videoHash",
-						"type": "string"
-					}
-				],
-				"internalType": "struct AnonymousReportingSystem.Report",
-				"name": "",
-				"type": "tuple"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "getTotalContractsDeployed",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	}
-]; // Your contract ABI
+import CryptoJS from 'crypto-js';
+import contractAbi from './Abi.json';
+const KEY = process.env.REACT_APP_ENCRYPTION_KEY; // Replace with your secret key
 
 const ReportPage = () => {
   const [reportId, setReportId] = useState('');
   const [report, setReport] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  useEffect(() => {
-    initializeWeb3();
-  }, []);
-
-  const initializeWeb3 = async () => {
+  const initializeWeb3 = async (reportId) => {
     if (window.ethereum) {
       try {
+        setLoading(true);
         await window.ethereum.request({ method: 'eth_requestAccounts' });
         const web3 = new Web3(window.ethereum);
-        const contractAddress = '0x110300ecA2B4F7204e537B9B58F3E99a3F502107'; // Replace with your contract address
+        const contractAddress = process.env.REACT_APP_CONTRACT_ADDRESS;
         const contract = new web3.eth.Contract(contractAbi, contractAddress);
 
         // Fetch the report using the current user's account
@@ -209,16 +24,20 @@ const ReportPage = () => {
         const account = accounts[0];
 
         try {
-          const fetchedReport = await contract.methods.getReport(reportId).call({ from: account });
+          const fetchedReport = await contract.methods.getReportById(reportId).call({ from: account });
           setReport(fetchedReport);
+          setError('');
         } catch (error) {
-          console.error('Error fetching report:', error);
+          setError('Error fetching report: Report not found.');
+        } finally {
+          setLoading(false);
         }
       } catch (error) {
-        console.error('Error initializing web3:', error);
+        setError('Error initializing web3: ' + error.message);
+        setLoading(false);
       }
     } else {
-      console.error('MetaMask not detected');
+      setError('MetaMask not detected');
     }
   };
 
@@ -231,7 +50,20 @@ const ReportPage = () => {
     // Fetch the report using the current user's account
     // You can perform additional validation before making the request
     if (reportId) {
-      initializeWeb3();
+      initializeWeb3(reportId); // Call the function to fetch the report
+    }
+  };
+
+  const decryptData = (data) => {
+    try {
+      console.log('Encrypted data:', data); // Check the encrypted data
+      // Decrypt the data using AES algorithm and secret key
+      const decryptedBytes = CryptoJS.AES.decrypt(data, KEY);
+      const decryptedText = decryptedBytes.toString(CryptoJS.enc.Utf8);
+      return decryptedText;
+    } catch (error) {
+      console.error('Error decrypting data:', error);
+      return '';
     }
   };
 
@@ -241,22 +73,24 @@ const ReportPage = () => {
       <form onSubmit={handleSubmit}>
         <label>
           Report ID:
-          <input type="number" value={reportId} onChange={handleReportIdChange} />
+          <input type="text" value={reportId} onChange={handleReportIdChange} />
         </label>
         <button type="submit">Fetch Report</button>
       </form>
+      {loading && <p>Loading...</p>}
+      {error && <p>{error}</p>}
       {report ? (
         <div>
           <h2>Report Details</h2>
-          <p>District: {report.district}</p>
-          <p>Excise Zone: {report.exciseZone}</p>
-          <p>Title: {report.title}</p>
-          <p>Description: {report.description}</p>
-          <p>Photo Hash: {report.photoHash}</p>
-          <p>Video Hash: {report.videoHash}</p>
+          <p>District: {decryptData(report.district)}</p>
+          <p>Area: {decryptData(report.area)}</p>
+          <p>Title: {decryptData(report.title)}</p>
+          <p>Description: {decryptData(report.description)}</p>
+          <p>Photo Hash: {decryptData(report.photoHash)}</p>
+          <p>Video Hash: {decryptData(report.videoHash)}</p>
         </div>
       ) : (
-        <p>Enter a report ID and click "Fetch Report" to see the details.</p>
+        <p>Enter a valid report ID and click "Fetch Report" to see the details.</p>
       )}
     </div>
   );

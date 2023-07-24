@@ -199,7 +199,7 @@ const ReportPage = () => {
       try {
         await window.ethereum.request({ method: 'eth_requestAccounts' });
         const web3 = new Web3(window.ethereum);
-        const contractAddress = '0x110300ecA2B4F7204e537B9B58F3E99a3F502107'; // Replace with your contract address
+        const contractAddress = process.env.REACT_APP_CONTRACT_ADDRESS; // Replace with your contract address
         const contract = new web3.eth.Contract(contractAbi, contractAddress);
 
 
