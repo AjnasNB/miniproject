@@ -13,6 +13,7 @@ const districtOptions = [
 ];
 
 const ReportForm = () => {
+  // eslint-disable-next-line
   const [web3, setWeb3] = useState(null);
   const [contract, setContract] = useState(null);
   const [accounts, setAccounts] = useState([]);
